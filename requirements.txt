@@ -1,0 +1,1 @@
+pip install deepspeech==0.9.3

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Test</title>
+</head>
+<body>
+    <h1>Authentication Test</h1>
+    <button id="captureBtn">Capture Photo</button>
+    <button id="authenticateBtn">Authenticate</button>
+    <p id="result"></p>
+
+    <!-- Video element to display live camera feed -->
+    <video id="video" width="640" height="480" autoplay></video>
+
+    <!-- Canvas element to capture and display the photo -->
+    <canvas id="canvas" width="640" height="480" style="display: none;"></canvas>
+
+    <script>
+        document.getElementById('captureBtn').addEventListener('click', () => {
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            const context = canvas.getContext('2d');
+
+            // Draw the current frame of the video onto the canvas
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Show the canvas (hidden by default)
+            canvas.style.display = 'block';
+        });
+
+        document.getElementById('authenticateBtn').addEventListener('click', async () => {
+            const canvas = document.getElementById('canvas');
+            const photoData = canvas.toDataURL('image/jpeg');
+
+            // Send captured photo to the server for authentication
+            const response = await fetch('/verify_photo', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ photo: photoData }),
+            });
+
+            const data = await response.json();
+            document.getElementById('result').innerText = `Face Authentication: ${data.result}`;
+        });
+
+        // Capture video from user's camera
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then((stream) => {
+                const video = document.getElementById('video');
+                video.srcObject = stream;
+            })
+            .catch((err) => console.error('Error accessing camera:', err));
+    </script>
+</body>
+</html>
